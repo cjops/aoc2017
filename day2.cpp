@@ -120,7 +120,6 @@ int getSpreadsheet(int spreadsheet[][MAXCOLS], const char filename[])
                     break;
                 }
             }
-            
         }
     }
     return nRows;
