@@ -2,142 +2,129 @@
 #include <cmath>
 using namespace std;
 
-const int MAXSQUARES = 1000000;
+const int MAX_SQUARES = 1000;
+
+void getSpiralCoords(const int& n, int& x, int& y)
+{
+    int N = 1;
+    //cout << "N=" << N << " [" << x << ", " << y << "]" << endl;
+
+    // counter-clockwise spiral
+    while (N < n)
+    {
+        if (abs(x) <= abs(y) && !(x == -y && x < 0)) // moving horizontally
+        {
+            if (y > 0) // upper
+                x--;
+            else // lower
+                x++;
+        }
+        else // moving vertically
+        {
+            if (x > 0) // right
+                y++;
+            else // left
+                y--;
+        }
+        N++;
+        //cout << "N=" << N << " [" << x << ", " << y << "]" << endl;
+    }
+}
+
+int dist(int x, int y)
+{
+    return abs(x) + abs(y);
+}
 
 struct Square
 {
     int x;
     int y;
-    int key;
     int value;
-    Square(int x_, int y_, int key_, int value_);
 };
-
-Square::Square(int x_, int y_, int key_, int value_ = 0)
-{
-    x = x_;
-    y = y_;
-    key = key_;
-    value = value_;
-}
 
 class Spiral
 {
 public:
-    Spiral(int nSquares);
+    Spiral();
     ~Spiral();
-    void addSquares(int nSquares);
-    Square* square(int key);
+    int addSquare();
     void display();
 private:
-    Square* m_spiral[MAXSQUARES];
-    int m_nSquares;
-    int m_radius;
-    bool existsSquare(int x, int y);
-    bool withinBounds(int x, int y);
+    Square* squares[MAX_SQUARES];
+    int nSquares;
+    int lastX;
+    int lastY;
+    int sumAdjacentSquares(const int& x, const int& y);
 };
 
-Spiral::Spiral(int nSquares = 0)
+Spiral::Spiral()
 {
-    m_nSquares = 0;
-    m_radius = 0;
-    addSquares(nSquares);
+    nSquares = 1;
+    lastX = 0;
+    lastY = 0;
+    squares[0] = new Square;
+    squares[0]->x = 0;
+    squares[0]->y = 0;
+    squares[0]->value = 1;
 }
 
 Spiral::~Spiral()
 {
-    for (int i = 0; i < m_nSquares; i++)
-        delete m_spiral[i];
+    for (int i = 0; i < nSquares; i++)
+        delete squares[i];
 }
 
-bool Spiral::existsSquare(int x, int y)
+int Spiral::sumAdjacentSquares(const int& x, const int& y)
 {
-    for (int i = 0; i < m_nSquares; i++)
-        if (m_spiral[i]->x == x && m_spiral[i]->y == y)
-            return true;
-    return false;
-}
-
-bool Spiral::withinBounds(int x, int y)
-{
-    return abs(x) <= m_radius && abs(y) <= m_radius;
-}
-
-Square* Spiral::square(int key)
-{
-    for (int i = 0; i < m_nSquares; i++)
-        if (m_spiral[i]->key == key)
-            return m_spiral[i];
-    return nullptr;
-}
-
-void Spiral::addSquares(int nSquares)
-{
-    int wantedSquares = m_nSquares + nSquares;
-    while (m_nSquares < wantedSquares)
+    int sum = 0;
+    for (int i = 0; i < nSquares; i++)
     {
-        if (m_nSquares == 0)
+        int X = squares[i]->x;
+        int Y = squares[i]->y;
+        if ((x + 1 == X && y == Y)
+            || (x + 1 == X && y + 1 == Y)
+            || (x == X && y + 1 == Y)
+            || (x - 1 == X && y + 1 == Y)
+            || (x - 1 == X && y == Y)
+            || (x - 1 == X && y - 1 == Y)
+            || (x == X && y - 1 == Y)
+            || (x + 1 == X && y - 1 == Y))
         {
-            m_spiral[0] = new Square(0, 0, 1);
-            m_nSquares++;
-            m_radius = 1;
-            continue;
+            sum += squares[i]->value;
         }
-
-        int X = m_spiral[m_nSquares - 1]->x;
-        int Y = m_spiral[m_nSquares - 1]->y;
-        int K = m_spiral[m_nSquares - 1]->key;
-        
-        // counter-clockwise spiral
-
-        if (!existsSquare(X + 1, Y) && withinBounds(X + 1, Y))
-        {
-            m_spiral[m_nSquares] = new Square(X + 1, Y, K + 1);
-            m_nSquares++;
-            continue;
-        }
-        else if (!existsSquare(X, Y + 1) && withinBounds(X, Y + 1))
-        {
-            m_spiral[m_nSquares] = new Square(X, Y + 1, K + 1);
-            m_nSquares++;
-            continue;
-        }
-        else if (!existsSquare(X - 1, Y) && withinBounds(X - 1, Y))
-        {
-            m_spiral[m_nSquares] = new Square(X - 1, Y, K + 1);
-            m_nSquares++;
-            continue;
-        }
-        else if (!existsSquare(X, Y - 1) && withinBounds(X, Y - 1))
-        {
-            m_spiral[m_nSquares] = new Square(X, Y - 1, K + 1);
-            m_nSquares++;
-            continue;
-        }
-        else if (!existsSquare(X + 1, Y))
-        {
-            m_radius++;
-            m_spiral[m_nSquares] = new Square(X + 1, Y, K + 1);
-            m_nSquares++;
-            continue;
-        }
-        
     }
+    return sum;
 }
 
-// todo: rewrite without storing objects and by only keeping track of the last move
+int Spiral::addSquare()
+{
+    getSpiralCoords(2, lastX, lastY);
+    squares[nSquares] = new Square;
+    squares[nSquares]->x = lastX;
+    squares[nSquares]->y = lastY;
+    squares[nSquares]->value = sumAdjacentSquares(lastX, lastY);
+    nSquares++;
+    return squares[nSquares - 1]->value;
+}
 
 void Spiral::display()
 {
-    for (int i = 0; i < m_nSquares; i++)
-    {
-        cout << "[" << m_spiral[i]->x << ", " << m_spiral[i]->y << "] " << m_spiral[i]->key << endl;
-    }
+    for (int i = 0; i < nSquares; i++)
+        cout << "n=" << i << " [" << squares[i]->x << ", " << squares[i]->y << "]" << endl;
 }
 
 int main()
 {
-    Spiral* sp = new Spiral(500);
-    sp->display();
+    int n = 265149;
+    int x = 0, y = 0;
+    getSpiralCoords(n, x, y);
+    cout << "n=" << n << " [" << x << ", " << y << "]" << endl;
+    cout << "Taxicab distance: " << dist(x, y) << endl;
 
+    Spiral sp;
+    int value = 0;
+    while (value < n)
+        value = sp.addSquare();
+    cout << value << endl;
 }
