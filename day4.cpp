@@ -9,7 +9,7 @@ using namespace std;
 const int MAXWORDS = 20;
 const int MAXWORDLEN = 20;
 const int MAXLINELEN = 1000;
-const char filename[] = "input.txt";
+const char FILENAME[] = "input.txt";
 
 bool isAnagram(const char* word1, const char* word2)
 {
@@ -67,7 +67,7 @@ bool isValidPhrase(char* phrase)
 int main()
 {
     ifstream stream;
-    stream.open(filename);
+    stream.open(FILENAME);
     if (stream.fail())
     {
         cout << "Couldn't open file" << endl;
